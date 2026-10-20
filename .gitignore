@@ -1,0 +1,54 @@
+# Exclude non-code profile and archive folders
+cgl-profile/
+company-profile/
+*.pdf
+*.tar.gz
+*.zip
+*.tar
+*.bak
+
+# Exclude all media & image binary files
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.ico
+*.mp4
+*.webm
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Next.js build outputs
+.next/
+*/.next/
+out/
+*/out/
+.vercel/
+*/.vercel/
+
+# Environment files
+.env*.local
+*/.env*.local
+.env
+*/.env
+
+# Firebase service account keys
+*-firebase-adminsdk-*.json
+firebase-service-account.json
+
+# Docker data volumes
+docker/mysql/data/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

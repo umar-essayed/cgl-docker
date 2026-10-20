@@ -1,0 +1,16 @@
+# Build and cache
+.next
+node_modules
+.git
+.vercel
+
+# Unused archived folders in sliders
+public/assets/sliders/archive
+public/assets/sliders/untitled folder
+
+# Docs & Scratch
+MASTER_PLAN.md
+BUSINESS_MODEL.md
+AGENTS.md
+CLAUDE.md
+*.html

@@ -1,0 +1,96 @@
+services:
+  # 1. MySQL Enterprise Database Service
+  cgl-db:
+    image: mysql:8.0
+    container_name: cgl-mysql-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-cgl_root_secure_2026}
+      MYSQL_DATABASE: ${DB_NAME:-cgl_db}
+      MYSQL_USER: ${DB_USER:-cgl_user}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-cgl_user_pass_2026}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-authentication-plugin=mysql_native_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./docker/mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - cgl-db-data:/var/lib/mysql
+    networks:
+      - cgl-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-cgl_root_secure_2026}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # 2. CGL Client Public Web Platform (cgl-v2)
+  cgl-client:
+    build:
+      context: ./cgl-v2
+      dockerfile: Dockerfile
+    container_name: cgl-client-web
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOSTNAME: "0.0.0.0"
+      DB_HOST: cgl-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-cgl_root_secure_2026}
+      DB_NAME: ${DB_NAME:-cgl_db}
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-cgl}
+      R2_PUBLIC_DOMAIN: ${R2_PUBLIC_DOMAIN:-}
+    depends_on:
+      cgl-db:
+        condition: service_healthy
+    networks:
+      - cgl-network
+
+  # 3. CGL Operations & CMS Control Hub (cgl-admin)
+  cgl-admin:
+    build:
+      context: ./cgl-admin
+      dockerfile: Dockerfile
+    container_name: cgl-admin-hub
+    restart: always
+    ports:
+      - "3005:3005"
+    environment:
+      NODE_ENV: production
+      PORT: 3005
+      HOSTNAME: "0.0.0.0"
+      DB_HOST: cgl-db
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${DB_ROOT_PASSWORD:-cgl_root_secure_2026}
+      DB_NAME: ${DB_NAME:-cgl_db}
+      JWT_SECRET: ${JWT_SECRET:-cgl_executive_secure_control_center_key_2026_988421}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@cgl.sa}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:-cgl2026@secure}
+      MAIN_WEBSITE_URL: http://cgl-client:3000
+      NEXT_PUBLIC_SITE_URL: http://localhost:3000
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID:-}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID:-}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY:-}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-cgl}
+      R2_PUBLIC_DOMAIN: ${R2_PUBLIC_DOMAIN:-}
+    depends_on:
+      cgl-db:
+        condition: service_healthy
+    networks:
+      - cgl-network
+
+volumes:
+  cgl-db-data:
+    driver: local
+
+networks:
+  cgl-network:
+    driver: bridge
